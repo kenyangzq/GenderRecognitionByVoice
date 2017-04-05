@@ -99,13 +99,28 @@ test.label <- voice.test$label
 knn.pred.5 <- knn(train.data, test.data, train.label, 5)
 table(knn.pred.5, test.label)
 
-
-# knn.pred.10 <- knn(train.data, test.data, train.label, 10)
-# table(knn.pred.10, test.label)
-
 # Plot KNN:
 summary(voice.sub)
 
+test <- test.data %>% mutate(
+  pred5 = knn.pred.5
+)
+
+grid <- expand.grid(
+  meanfreq = seq(0, 0.3, length.out = 100),
+  sd = seq(0, 0.3, length.out = 100)
+)
+
+set.seed(1234)
+grid5.pred <- knn(train.data, grid, train.label, 5)
+
+ggplot(test, aes(x=meanfreq, y=sd)) +
+  geom_point(aes(pch=pred5, color = pred5), size = 3) +
+  geom_point(data = grid, mapping = aes(x=meanfreq,y=sd,color=grid5.pred), 
+             alpha = .2) + 
+  ggtitle("K=5")
+
+# Not very informative from the graph, maybe other parameter choices are better
 
 
 
