@@ -77,8 +77,8 @@ all.table
 
 
 ### KNN
-
-## May work with different combination of parameters
+# I did an experiment with meanfreq and sd. It turns out not very 
+# well. I will try to work with different combination of parameters
 
 # first break the data set into train set and test set
 
