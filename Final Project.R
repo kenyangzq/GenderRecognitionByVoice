@@ -2,12 +2,13 @@
 library(ggplot2)
 library(dplyr)
 library(broom)
+library(class)
 
 voice <- read.csv("voice.csv")
 summary(voice)
 View(voice)
 
-## Pre-processing data
+### Pre-processing data
 # Mode, dfrange and modindex contains several 0's, may need to mark them as
 # missing data. 
 # However, on Kaggle, people are working on this data without doing this. The
@@ -17,9 +18,8 @@ View(voice.sort_by_dfrange)
 
 # Label is gender, a binomial variable, can't use linear regression on it.
 
-## Logistic Regression 
 
-
+### Logistic Regression 
 ## using only mean frequency to predict gender
 fit.mf <- glm(label~meanfreq, data = voice, family = "binomial")
 
@@ -36,6 +36,8 @@ mf.df.prediction <- data.frame(
 
 # get the prediction table
 mf.table <- table(df.prediction$predict, df.prediction$actual)
+mf.table
+# not very satifactory with tf(true positive) = 1101/1584 = 0.6951
 
 
 ## predict gender using variable selection
@@ -61,6 +63,8 @@ all.df.prediction <- data.frame(
 all.table <- table(all.df.prediction$predict, all.df.prediction$actual)
 all.table
 # let female be postive, true positive rate is 1541/1584 = 0.9728
+
+### KNN
 
 
 
