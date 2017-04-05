@@ -19,6 +19,8 @@ View(voice.sort_by_dfrange)
 # Label is gender, a binomial variable, can't use linear regression on it.
 
 
+
+
 ### Logistic Regression 
 ## using only mean frequency to predict gender
 fit.mf <- glm(label~meanfreq, data = voice, family = "binomial")
@@ -35,8 +37,11 @@ mf.df.prediction <- data.frame(
 )
 
 # get the prediction table
-mf.table <- table(df.prediction$predict, df.prediction$actual)
+mf.table <- table(mf.df.prediction$predict, mf.df.prediction$actual)
 mf.table
+### female male
+### predict female   1101  648
+### predict male      483  936
 # not very satifactory with tf(true positive) = 1101/1584 = 0.6951
 
 
@@ -62,11 +67,44 @@ all.df.prediction <- data.frame(
 
 all.table <- table(all.df.prediction$predict, all.df.prediction$actual)
 all.table
+### female male
+### predict female   1541   36
+### predict male       43 1548
 # let female be postive, true positive rate is 1541/1584 = 0.9728
+
+
+
+
 
 ### KNN
 
+## May work with different combination of parameters
 
+# first break the data set into train set and test set
+
+voice.sub <- voice %>% select(meanfreq, sd, label)
+
+row <- nrow(voice)
+set.seed(1234)
+voice.train <- voice.sub %>% sample_n(row/10*9)
+voice.test <- setdiff(voice.sub, voice.train)
+
+# then get data without label and separate label out
+train.data <- voice.train %>% select(-label)
+test.data <- voice.test %>% select(-label)
+train.label <- voice.train$label
+test.label <- voice.test$label
+
+# perform KNN with K = 5
+knn.pred.5 <- knn(train.data, test.data, train.label, 5)
+table(knn.pred.5, test.label)
+
+
+# knn.pred.10 <- knn(train.data, test.data, train.label, 10)
+# table(knn.pred.10, test.label)
+
+# Plot KNN:
+summary(voice.sub)
 
 
 
