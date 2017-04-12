@@ -82,8 +82,6 @@ all.table
 # I did an experiment with meanfreq and sd. It turns out not very 
 # well. I will try to work with different combination of parameters
 
-knntest(voice.sub, 5)
-
 # first break the data set into train set and test set
 
 voice.sub <- voice %>% select(meanfreq, sd, label)
