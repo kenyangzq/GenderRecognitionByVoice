@@ -1,4 +1,5 @@
 ## Final Project
+# Notice: need to set the directory to your directory that contains the data file
 library(ggplot2)
 library(dplyr)
 library(broom)
@@ -76,9 +77,12 @@ all.table
 
 
 
+
 ### KNN
 # I did an experiment with meanfreq and sd. It turns out not very 
 # well. I will try to work with different combination of parameters
+
+knntest(voice.sub, 5)
 
 # first break the data set into train set and test set
 
@@ -121,6 +125,41 @@ ggplot(test, aes(x=meanfreq, y=sd)) +
   ggtitle("K=5")
 
 # Not very informative from the graph, maybe other parameter choices are better
+
+
+
+
+## Cross Validation
+
+# Create data partition
+set.seed(4321)
+trainindex <- createDataPartition(
+  y = voice$label,
+  p = .8,
+  list = FALSE
+)
+length(trainindex)
+
+cv_train <- voice[trainindex, ]
+cv_test <- voice[-trainindex, ]
+
+# create control variable
+control_var <- caret::trainControl(
+  method = "cv",
+  number = 5
+)
+
+# let's try 1-layer neural network
+install.packages("e1071")
+set.seed(1)
+nnet_fit <- caret::train(
+  label ~ .,
+  data = cv_train,
+  method = "nnet",
+  trControl = control_var
+)
+nnet_fit
+# accuracy 97.5%, nice model
 
 
 
