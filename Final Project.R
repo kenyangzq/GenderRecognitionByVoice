@@ -24,7 +24,7 @@ View(voice.sort_by_dfrange)
 
 ### Logistic Regression 
 ## using only mean frequency to predict gender
-fit.mf <- glm(label~meanfreq, data = voice, family = "binomial")
+fit.mf <- glm(label~meanfun, data = voice, family = "binomial")
 
 # get the prediction and mutate it into binary output
 mf.prob.pred <- predict(fit.mf, newdata = voice, type = "response")
@@ -37,6 +37,7 @@ mf.df.prediction <- data.frame(
   actual = voice$label
 )
 
+#Below results used meanfreq as the predicting variable
 # get the prediction table
 mf.table <- table(mf.df.prediction$predict, mf.df.prediction$actual)
 mf.table
@@ -45,6 +46,10 @@ mf.table
 ### predict male      483  936
 # not very satifactory with tf(true positive) = 1101/1584 = 0.6951
 
+#Plot ROC curve for logistic-regression model using meanfun  
+library(plotROC)
+glm_1_roc <- data.frame(D = as.numeric(voice$label), M = mf.prob.pred)
+ggplot(glm_1_roc, aes(d = D, m = M)) + geom_roc()
 
 ## predict gender using variable selection
 fit.all <- glm(label~., data = voice, family="binomial")
