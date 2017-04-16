@@ -4,6 +4,7 @@ library(ggplot2)
 library(dplyr)
 library(broom)
 library(class)
+library(caret)
 
 voice <- read.csv("voice.csv")
 summary(voice)
@@ -23,11 +24,12 @@ View(voice.sort_by_dfrange)
 
 
 ### Logistic Regression 
-## using only mean frequency to predict gender
-fit.mf <- glm(label~meanfreq, data = voice, family = "binomial")
+## using only mean fundamental frequency to predict gender
+fit.mf <- glm(label~meanfun, data = voice, family = "binomial")
 
 # get the prediction and mutate it into binary output
 mf.prob.pred <- predict(fit.mf, newdata = voice, type = "response")
+#Factor outcomes based on arbitrary 0.5 threshold
 mf.outcome.pred <- ifelse(mf.prob.pred > .5, 
                           "predict male", 
                           "predict female")
@@ -37,14 +39,27 @@ mf.df.prediction <- data.frame(
   actual = voice$label
 )
 
-# get the prediction table
+# get the prediction table (updated for meanfun model)
 mf.table <- table(mf.df.prediction$predict, mf.df.prediction$actual)
 mf.table
 ### female male
-### predict female   1101  648
-### predict male      483  936
-# not very satifactory with tf(true positive) = 1101/1584 = 0.6951
+### predict female   1499  61
+### predict male      85  1523
 
+#Plot ROC curve for logistic-regression model using meanfun  
+library(plotROC)
+glm_1_roc <- data.frame(D = as.numeric(voice$label)-1, M = mf.prob.pred)
+ggplot(glm_1_roc, aes(d = D, m = M)) + geom_roc()
+
+
+#Get new predictions using ROC results
+mf.outcome.pred2 <- ifelse(mf.prob.pred >0.6,
+                           "predict male",
+                           "predict female")
+mf.df.prediction2 <- data.frame(predict = mf.outcome.pred2, actual = voice$label)
+mf.table2 <- table(mf.df.prediction2$predict, mf.df.prediction2$actual)
+#ROC curve shows that this model is pretty good
+#Need to ask how to find the optimal threshold
 
 ## predict gender using variable selection
 fit.all <- glm(label~., data = voice, family="binomial")
@@ -73,24 +88,25 @@ all.table
 ### predict male       43 1548
 # let female be postive, true positive rate is 1541/1584 = 0.9728
 
-
-
-
-
+#Plot ROC for AIC model 
+all_1_roc <- data.frame(D = as.numeric(voice$label)-1, M = all.prob.pred)
+ggplot(all_1_roc, aes(d = D, m = M)) + geom_roc()
+#ROC curve is better than logregression model
 
 ### KNN
 # I did an experiment with meanfreq and sd. It turns out not very 
 # well. I will try to work with different combination of parameters
+# Editted with meanfun and IQR features.
 
 # first break the data set into train set and test set
 
-voice.sub <- voice %>% select(meanfreq, sd, label)
+voice.sub <- voice %>% select(meanfun, IQR, label)
 
 row <- nrow(voice)
 set.seed(1234)
 voice.train <- voice.sub %>% sample_n(row/10*9)
 voice.test <- setdiff(voice.sub, voice.train)
-
+  
 # then get data without label and separate label out
 train.data <- voice.train %>% select(-label)
 test.data <- voice.test %>% select(-label)
@@ -109,22 +125,22 @@ test <- test.data %>% mutate(
 )
 
 grid <- expand.grid(
-  meanfreq = seq(0, 0.3, length.out = 100),
-  sd = seq(0, 0.3, length.out = 100)
+  meanfun = seq(0, 0.3, length.out = 100),
+  IQR = seq(0, 0.3, length.out = 100)
 )
 
 set.seed(1234)
 grid5.pred <- knn(train.data, grid, train.label, 5)
 
-ggplot(test, aes(x=meanfreq, y=sd)) +
+#png('imgs/KNN_1.png',width = 1080, height = 720, res = 125)
+ggplot(test, aes(x=meanfun, y=IQR)) +
   geom_point(aes(pch=pred5, color = pred5), size = 3) +
-  geom_point(data = grid, mapping = aes(x=meanfreq,y=sd,color=grid5.pred), 
+  geom_point(data = grid, mapping = aes(x=meanfun,y=IQR,color=grid5.pred), 
              alpha = .2) + 
   ggtitle("K=5")
 
-# Not very informative from the graph, maybe other parameter choices are better
-
-
+#export graph 
+#dev.off()
 
 
 ## Cross Validation
@@ -158,6 +174,9 @@ nnet_fit <- caret::train(
 )
 nnet_fit
 # accuracy 97.5%, nice model
+
+
+
 
 
 
