@@ -1,0 +1,24 @@
+---
+title: "Gender Prediction by Voice - 2820L Term Project"
+author: "Alex DiCesare, Kenneth Li, and Ken Yang"
+date: "April 22, 2017"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction 
+
+# Data Exploration
+
+# Basic Models
+
+# Improved Models
+
+# Results and Conclusion
