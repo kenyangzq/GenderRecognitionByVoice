@@ -104,7 +104,7 @@ voice.sub <- voice %>% select(meanfun, IQR, label)
 
 row <- nrow(voice)
 set.seed(1234)
-voice.train <- voice.sub %>% sample_n(row/10*9)
+voice.train <- voice.sub %>% sample_n(row*9/10)
 voice.test <- setdiff(voice.sub, voice.train)
   
 # then get data without label and separate label out
@@ -160,11 +160,23 @@ cv_test <- voice[-trainindex, ]
 # create control variable
 control_var <- caret::trainControl(
   method = "cv",
-  number = 5
+  number = 10
 )
 
+library(e1071)
+
+#10-fold CV for KNN
+knn_10_cv <- caret::train(
+  label ~ .,
+  data = cv_train,
+  method = "knn",
+  trControl = control_var,
+  metric = "Accuracy",
+  tuneLength = 10
+)
+#5 is the optimal k-param
+
 # let's try 1-layer neural network
-install.packages("e1071")
 set.seed(1)
 nnet_fit <- caret::train(
   label ~ .,
