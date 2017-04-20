@@ -46,11 +46,15 @@ mf.table
 ### predict female   1499  61
 ### predict male      85  1523
 
-#Plot ROC curve for logistic-regression model using meanfun  
+#Plot ROC curve for logistic-regression model using meanfun 
 library(plotROC)
 glm_1_roc <- data.frame(D = as.numeric(voice$label)-1, M = mf.prob.pred)
-ggplot(glm_1_roc, aes(d = D, m = M)) + geom_roc()
 
+png('imgs/logReg_ROC_1.png',width = 1080, height = 720, res = 125)
+ggplot(glm_1_roc, aes(d = D, m = M)) + geom_roc() + 
+  labs(title = "Logistic Regression ROC")+
+  theme(plot.title = element_text(size = 18, face = "bold", hjust = 0.5), text= element_text(size = 14))
+dev.off()
 
 #Get new predictions using ROC results
 mf.outcome.pred2 <- ifelse(mf.prob.pred >0.6,
@@ -90,7 +94,12 @@ all.table
 
 #Plot ROC for AIC model 
 all_1_roc <- data.frame(D = as.numeric(voice$label)-1, M = all.prob.pred)
-ggplot(all_1_roc, aes(d = D, m = M)) + geom_roc()
+
+png('imgs/aic_ROC_1.png', width = 1080, height = 720, res = 125)
+ggplot(all_1_roc, aes(d = D, m = M)) + geom_roc() +
+  labs(title = "AIC Model ROC")+
+  theme(plot.title = element_text(size=18, face = "bold", hjust = 0.5), text = element_text(size=14))
+dev.off()
 #ROC curve is better than logregression model
 
 ### KNN
@@ -121,8 +130,9 @@ table(knn.pred.5, test.label)
 summary(voice.sub)
 
 test <- test.data %>% mutate(
-  pred5 = knn.pred.5
+  Label = knn.pred.5
 )
+
 
 grid <- expand.grid(
   meanfun = seq(0, 0.3, length.out = 100),
@@ -132,15 +142,16 @@ grid <- expand.grid(
 set.seed(1234)
 grid5.pred <- knn(train.data, grid, train.label, 5)
 
-#png('imgs/KNN_1.png',width = 1080, height = 720, res = 125)
+png('imgs/KNN_1.png',width = 1080, height = 720, res = 125)
 ggplot(test, aes(x=meanfun, y=IQR)) +
-  geom_point(aes(pch=pred5, color = pred5), size = 3) +
+  geom_point(aes(pch=Label, color = Label), size = 3) +
   geom_point(data = grid, mapping = aes(x=meanfun,y=IQR,color=grid5.pred), 
              alpha = .2) + 
-  ggtitle("K=5")
+  labs(title = "KNN Model plotted over Meanfun and IQR")+
+  theme(plot.title = element_text(size = 18, hjust = 0.5, face = "bold"), text = element_text(size = 14))
 
 #export graph 
-#dev.off()
+dev.off()
 
 
 ## Cross Validation
@@ -160,7 +171,9 @@ cv_test <- voice[-trainindex, ]
 # create control variable
 control_var <- caret::trainControl(
   method = "cv",
-  number = 10
+  number = 10,
+  classProbs = TRUE,
+  summaryFunction = mnLogLoss
 )
 
 library(e1071)
@@ -171,10 +184,52 @@ knn_10_cv <- caret::train(
   data = cv_train,
   method = "knn",
   trControl = control_var,
-  metric = "Accuracy",
-  tuneLength = 10
+  metric = "logLoss",
+  tuneLength = 10,
+  prob = TRUE
 )
 #5 is the optimal k-param
+
+knn_10_cv_results <- predict(knn_10_cv, newdata = cv_test, type  = "prob")
+class_prob <- knn_10_cv_results$male
+
+# # create control variable
+# control_var <- caret::trainControl(
+#   method = "cv",
+#   number = 10,
+#   classProbs = TRUE
+# )
+# 
+# library(e1071)
+# 
+# #10-fold CV for KNN
+# knn_10_cv <- caret::train(
+#   label ~ .,
+#   data = cv_train,
+#   method = "knn",
+#   trControl = control_var,
+#   metric = "Accuracy",
+#   tuneLength = 10,
+#   prob = TRUE
+# )
+# #5 is the optimal k-param
+# 
+# knn_10_cv_results <- predict(knn_10_cv, newdata = cv_test, type  = "prob")
+# class_prob <- knn_10_cv_results$male
+
+#Use only when knn model doesn't output probabilities
+confusionMatrix(knn_10_cv_results, cv_test$label)
+
+#KNN for k=5 is not great (0.7199 accuracy)
+
+#Plot ROC for KNN model
+knn_roc <- data.frame(D = as.numeric(cv_test$label)-1, M = class_prob)
+
+png('imgs/knn_ROC_1.png', width = 1080, height = 720, res = 125)
+ggplot(knn_roc, aes(d = D, m = M)) + geom_roc() +
+  labs(title = "KNN Model ROC")+
+  theme(plot.title = element_text(size=18, face = "bold", hjust = 0.5), text = element_text(size=14))
+dev.off()
 
 # let's try 1-layer neural network
 set.seed(1)
