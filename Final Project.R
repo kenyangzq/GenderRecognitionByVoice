@@ -23,9 +23,8 @@ View(voice.sort_by_dfrange)
 
 
 
-### Logistic Regression 
-## using only mean fundamental frequency to predict gender
-fit.mf <- glm(label~meanfun, data = voice, family = "binomial")
+### Logistic Regression using meanfun, IQR, Q25
+fit.mf <- glm(label~meanfun+IQR+Q25, data = voice, family = "binomial")
 
 # get the prediction and mutate it into binary output
 mf.prob.pred <- predict(fit.mf, newdata = voice, type = "response")
@@ -57,12 +56,12 @@ ggplot(glm_1_roc, aes(d = D, m = M)) + geom_roc() +
 dev.off()
 
 #Get new predictions using ROC results
-mf.outcome.pred2 <- ifelse(mf.prob.pred >0.6,
+mf.outcome.pred2 <- ifelse(mf.prob.pred >0.56,
                            "predict male",
                            "predict female")
 mf.df.prediction2 <- data.frame(predict = mf.outcome.pred2, actual = voice$label)
 mf.table2 <- table(mf.df.prediction2$predict, mf.df.prediction2$actual)
-#ROC curve shows that this model is pretty good
+2#ROC curve shows that this model is pretty good
 #Need to ask how to find the optimal threshold
 
 ## predict gender using variable selection
