@@ -23,6 +23,10 @@ library(broom)
 library(class)
 library(caret)
 library(plotROC)
+library(rattle)
+library(rpart.plot)
+## some of the packages may need to be installed
+
 voice <- read.csv("voice.csv")
 ## summary(voice)
 ```
@@ -195,6 +199,27 @@ ggplot(test, aes(x=meanfun, y=IQR)) +
 ```
 
 The tp rate in the test set is 169/174 = 97.1%. 
+
+### Decision Tree
+Decision tree is another great option for binary classification problem, with a super fast learning rate and informative model.
+
+```{r}
+# train with decision tree method
+dtree_fit <- caret::train(
+  label~.,
+  data = cv_train,
+  method = "rpart",
+  trControl = control_var
+)
+dtree_fit
+```
+
+The best accuracy we get is 96%. We found a way to visualize the tree as followed
+```{r}
+## Visualize the decision tree
+fancyRpartPlot(dtree_fit$finalModel)
+```
+
 
 
 ## Results and Conclusion
