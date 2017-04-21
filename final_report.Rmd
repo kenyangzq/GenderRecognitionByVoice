@@ -49,13 +49,9 @@ The below scatterplot of meanfun vs. IQR depicts a striking differentiation betw
 
 ### More on Feature Importance
 
-<text on random forest model>
+By training a random forest model with the data, feature importance could also be visualized by how often features were selected for the model. The below graph displays the frequencies of selection across variables scaled over the total number of trees in the model. This further suggests that `meanfreq`, `IQR`, and `Q25` are important features.
 
 ![](imgs/rf_feature_importance_plot.png)
-
-<text on decision tree plot>
-
-![](imgs/decision_tree_plot.png)
 
 ## Models
 
@@ -96,7 +92,7 @@ mf.table
 
 As the result shows, the model gives a true positive rate of (assume female to be true) 1524 / 1584 = 0.96, which is a very nice result. 
 
-We have also plot the ROC plot of our basic model.
+We can also plot the ROC curve of our basic model.
 ```{r}
 glm_1_roc <- data.frame(D = as.numeric(voice$label)-1, M = mf.prob.pred)
 ggplot(glm_1_roc, aes(d = D, m = M)) + geom_roc() + 
@@ -106,7 +102,7 @@ ggplot(glm_1_roc, aes(d = D, m = M)) + geom_roc() +
 ```
 
 
-#### Improve Logistic
+#### Improving Logistic Regression
 Although the tp rate of our basic model is quite satisfying, we can't prove that our model uses the best variable set. One way to improve our model is to use the variable selection technique we learn in homework. 
 
 ```{r, results = "hide"}
@@ -200,7 +196,19 @@ ggplot(test, aes(x=meanfun, y=IQR)) +
 
 The tp rate in the test set is 169/174 = 97.1%. 
 
-### Decision Tree
+#### Cross-Validation 
+A cross-validation control variable was used while training further models. This allows for our models to be cross-validated 10 times using a logloss summary function. 
+```{r}
+# create control variable
+control_var <- caret::trainControl(
+  method = "cv",
+  number = 10,
+  classProbs = TRUE,
+  summaryFunction = mnLogLoss
+)
+```
+
+#### Decision Tree
 Decision tree is another great option for binary classification problem, with a super fast learning rate and informative model.
 
 ```{r}
@@ -214,12 +222,11 @@ dtree_fit <- caret::train(
 dtree_fit
 ```
 
-The best accuracy we get is 96%. We found a way to visualize the tree as followed
+The best accuracy we get is 96%. We found a way to visualize the tree as follows.
 ```{r}
 ## Visualize the decision tree
 fancyRpartPlot(dtree_fit$finalModel)
 ```
-
 
 
 ## Results and Conclusion
