@@ -33,5 +33,15 @@ ggplot(voice, aes(y = meanfun, x = IQR, colour = label)) +
 #dev.off()
 
 
+# plot of 4 important features based on random forest feature selection
+voice.sub2 <- voice %>% dplyr::select(meanfun, IQR, Q25, sd, label)
+View(voice.sub2)
+featurePlot(
+  x = voice.sub2[,1:4],
+  y = voice.sub2[,5],
+  plot = "box", ## density 
+  auto.key = list(column=2)
+)
+
 
 

@@ -143,7 +143,7 @@ ggplot(test, aes(x=meanfun, y=IQR)) +
 #dev.off()
 
 
-## Cross Validation
+## Supervised Machine Learning with Cross Validation
 
 # Create data partition
 set.seed(4321)
@@ -188,6 +188,40 @@ nnet_fit
 # accuracy 97.5%, nice model
 
 
+# Random Forest
+rf_fit <- caret::train(
+  label ~ .,
+  data = cv_train,
+  method = "rf",
+  trControl = control_var
+)
+rf_fit
+# accuracy 97.3%, good enough
+# one good way to plot the importance of feature, adjusted from Kaggle
+importance <- varImp(rf_fit, scale=T)
+imp_df1 <- importance$importance %>% mutate(group = rownames(imp_df1))
+imp_df1 %>%
+  ggplot(aes(x=reorder(group,Overall),y=Overall),size=2) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(vjust=1,angle=90)) +
+  labs(x="Variable",y="Overall Importance",title="Scaled Feature Importance")
+
+
+# Decision Tree
+# found a way to have a good plot online
+install.packages("rattle")
+install.packages("rpart.plot")
+library(rattle)
+library(rpart.plot)
+dtree_fit <- caret::train(
+  label~.,
+  data = cv_train,
+  method = "rpart",
+  trControl = control_var
+)
+dtree_fit
+# accuracy 76.9%, not high enough but learns super fast
+fancyRpartPlot(dtree_fit$finalModel)
 
 
 
