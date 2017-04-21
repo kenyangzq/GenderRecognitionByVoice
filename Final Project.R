@@ -142,7 +142,7 @@ set.seed(1234)
 grid5.pred <- knn(train.data, grid, train.label, 5)
 
 summary(test)
-# png('imgs/KNN_1.png',width = 1080, height = 720, res = 125)
+png('imgs/KNN_2.png',width = 1080, height = 720, res = 125)
 ggplot(test, aes(x=meanfun, y=IQR)) +
   geom_point(aes(pch=Label, color = Label), size = 1) +
   geom_point(data = grid, 
@@ -153,7 +153,7 @@ ggplot(test, aes(x=meanfun, y=IQR)) +
         text = element_text(size = 14))
 
 #export graph 
-# dev.off()
+dev.off()
 
 
 ## Supervised Machine Learning with Cross Validation
@@ -227,11 +227,11 @@ confusionMatrix(knn_10_cv_results, cv_test$label)
 #Plot ROC for KNN model
 knn_roc <- data.frame(D = as.numeric(cv_test$label)-1, M = class_prob)
 
-png('imgs/knn_ROC_1.png', width = 1080, height = 720, res = 125)
+# png('imgs/knn_ROC_1.png', width = 1080, height = 720, res = 125)
 ggplot(knn_roc, aes(d = D, m = M)) + geom_roc() +
   labs(title = "KNN Model ROC")+
   theme(plot.title = element_text(size=18, face = "bold", hjust = 0.5), text = element_text(size=14))
-dev.off()
+# dev.off()
 
 # let's try 1-layer neural network
 set.seed(1)
@@ -256,7 +256,8 @@ rf_fit
 # accuracy 97.3%, good enough
 # one good way to plot the importance of feature, adjusted from Kaggle
 importance <- varImp(rf_fit, scale=T)
-imp_df1 <- importance$importance %>% mutate(group = rownames(imp_df1))
+imp_df1 <- importance$importance
+imp_df1 <- imp_df1 %>% mutate(group = rownames(imp_df1))
 imp_df1 %>%
   ggplot(aes(x=reorder(group,Overall),y=Overall),size=2) +
   geom_bar(stat = "identity") +
