@@ -8,7 +8,7 @@ library(caret)
 
 voice <- read.csv("voice.csv")
 summary(voice)
-View(voice)
+# View(voice)
 
 ### Pre-processing data
 # Mode, dfrange and modindex contains several 0's, may need to mark them as
@@ -42,8 +42,8 @@ mf.df.prediction <- data.frame(
 mf.table <- table(mf.df.prediction$predict, mf.df.prediction$actual)
 mf.table
 ### female male
-### predict female   1499  61
-### predict male      85  1523
+### predict female   1524 42
+### predict male      60  1542
 
 #Plot ROC curve for logistic-regression model using meanfun 
 library(plotROC)
@@ -141,19 +141,22 @@ grid <- expand.grid(
 set.seed(1234)
 grid5.pred <- knn(train.data, grid, train.label, 5)
 
-png('imgs/KNN_1.png',width = 1080, height = 720, res = 125)
+summary(test)
+png('imgs/KNN_2.png',width = 1080, height = 720, res = 125)
 ggplot(test, aes(x=meanfun, y=IQR)) +
-  geom_point(aes(pch=Label, color = Label), size = 3) +
-  geom_point(data = grid, mapping = aes(x=meanfun,y=IQR,color=grid5.pred), 
-             alpha = .2) + 
+  geom_point(aes(pch=Label, color = Label), size = 1) +
+  geom_point(data = grid, 
+             mapping = aes(x=meanfun,y=IQR,color=grid5.pred), 
+             alpha = .1) + 
   labs(title = "KNN Model plotted over Meanfun and IQR")+
-  theme(plot.title = element_text(size = 18, hjust = 0.5, face = "bold"), text = element_text(size = 14))
+  theme(plot.title = element_text(size = 18, hjust = 0.5, face = "bold"), 
+        text = element_text(size = 14))
 
 #export graph 
 dev.off()
 
 
-## Cross Validation
+## Supervised Machine Learning with Cross Validation
 
 # Create data partition
 set.seed(4321)
@@ -224,11 +227,11 @@ confusionMatrix(knn_10_cv_results, cv_test$label)
 #Plot ROC for KNN model
 knn_roc <- data.frame(D = as.numeric(cv_test$label)-1, M = class_prob)
 
-png('imgs/knn_ROC_1.png', width = 1080, height = 720, res = 125)
+# png('imgs/knn_ROC_1.png', width = 1080, height = 720, res = 125)
 ggplot(knn_roc, aes(d = D, m = M)) + geom_roc() +
   labs(title = "KNN Model ROC")+
   theme(plot.title = element_text(size=18, face = "bold", hjust = 0.5), text = element_text(size=14))
-dev.off()
+# dev.off()
 
 # let's try 1-layer neural network
 set.seed(1)
@@ -242,6 +245,41 @@ nnet_fit
 # accuracy 97.5%, nice model
 
 
+# Random Forest
+rf_fit <- caret::train(
+  label ~ .,
+  data = cv_train,
+  method = "rf",
+  trControl = control_var
+)
+rf_fit
+# accuracy 97.3%, good enough
+# one good way to plot the importance of feature, adjusted from Kaggle
+importance <- varImp(rf_fit, scale=T)
+imp_df1 <- importance$importance
+imp_df1 <- imp_df1 %>% mutate(group = rownames(imp_df1))
+imp_df1 %>%
+  ggplot(aes(x=reorder(group,Overall),y=Overall),size=2) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(vjust=1,angle=90)) +
+  labs(x="Variable",y="Overall Importance",title="Scaled Feature Importance")
+
+
+# Decision Tree
+# found a way to have a good plot online
+install.packages("rattle")
+install.packages("rpart.plot")
+library(rattle)
+library(rpart.plot)
+dtree_fit <- caret::train(
+  label~.,
+  data = cv_train,
+  method = "rpart",
+  trControl = control_var
+)
+dtree_fit
+# accuracy 76.9%, not high enough but learns super fast
+fancyRpartPlot(dtree_fit$finalModel)
 
 
 
