@@ -141,16 +141,19 @@ grid <- expand.grid(
 set.seed(1234)
 grid5.pred <- knn(train.data, grid, train.label, 5)
 
-png('imgs/KNN_1.png',width = 1080, height = 720, res = 125)
+summary(test)
+# png('imgs/KNN_1.png',width = 1080, height = 720, res = 125)
 ggplot(test, aes(x=meanfun, y=IQR)) +
-  geom_point(aes(pch=Label, color = Label), size = 3) +
-  geom_point(data = grid, mapping = aes(x=meanfun,y=IQR,color=grid5.pred), 
-             alpha = .2) + 
+  geom_point(aes(pch=Label, color = Label), size = 1) +
+  geom_point(data = grid, 
+             mapping = aes(x=meanfun,y=IQR,color=grid5.pred), 
+             alpha = .1) + 
   labs(title = "KNN Model plotted over Meanfun and IQR")+
-  theme(plot.title = element_text(size = 18, hjust = 0.5, face = "bold"), text = element_text(size = 14))
+  theme(plot.title = element_text(size = 18, hjust = 0.5, face = "bold"), 
+        text = element_text(size = 14))
 
 #export graph 
-dev.off()
+# dev.off()
 
 
 ## Supervised Machine Learning with Cross Validation
