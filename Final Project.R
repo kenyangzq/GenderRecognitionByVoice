@@ -278,7 +278,6 @@ dtree_fit <- caret::train(
   trControl = control_var
 )
 dtree_fit
-# accuracy 76.9%, not high enough but learns super fast
 fancyRpartPlot(dtree_fit$finalModel)
 
 
