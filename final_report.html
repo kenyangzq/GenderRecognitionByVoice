@@ -222,20 +222,115 @@ div.tocify {
 </div>
 
 
-<div id="introduction" class="section level1">
-<h1>Introduction</h1>
+<pre class="r"><code>library(ggplot2)
+library(dplyr, warn.conflicts = FALSE)
+library(broom)
+library(class)
+library(caret)</code></pre>
+<pre><code>## Loading required package: lattice</code></pre>
+<pre class="r"><code>voice &lt;- read.csv(&quot;voice.csv&quot;)
+## summary(voice)</code></pre>
+<div id="gender-recognition-by-voice" class="section level1">
+<h1>Gender Recognition by Voice</h1>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
 </div>
-<div id="data-exploration" class="section level1">
-<h1>Data Exploration</h1>
+<div id="data-exploration" class="section level2">
+<h2>Data Exploration</h2>
 </div>
-<div id="basic-models" class="section level1">
-<h1>Basic Models</h1>
+<div id="models" class="section level2">
+<h2>Models</h2>
+<div id="logistic-regression" class="section level3">
+<h3>Logistic Regression</h3>
+<p>Among all the models we tried on this data set, the first we consider is regression. As stated in Data Exploration section, our label is a binomial variable, linear regression is not a candidate. Therefore, we try logistic regression.</p>
+<div id="basic-logistic" class="section level4">
+<h4>Basic Logistic</h4>
+<p>Our data set has 20 numerical features. At the first glance with a density plot in previous section, we estimate that mean fundamental frequency (meanfun), IQR and first frequency quantile (Q25) are the most dominant variables. Thus, we build our basic logistic model on these 3 variables.</p>
+<pre class="r"><code># Logistic Regression using meanfun, IQR, Q25
+fit.mf &lt;- glm(
+  label~meanfun+IQR+Q25, 
+  data = voice, 
+  family = &quot;binomial&quot;
+)
+# get the prediction and mutate it into binary output
+mf.prob.pred &lt;- predict(
+  fit.mf, 
+  newdata = voice, 
+  type = &quot;response&quot;
+)
+
+mf.outcome.pred &lt;- ifelse(mf.prob.pred &gt; .5, 
+                          &quot;predict male&quot;, 
+                          &quot;predict female&quot;)
+
+mf.df.prediction &lt;- data.frame(
+  predict = mf.outcome.pred,
+  actual = voice$label
+)
+
+# get the prediction table (updated for meanfun model)
+mf.table &lt;- table(mf.df.prediction$predict, mf.df.prediction$actual)
+mf.table</code></pre>
+<pre><code>##                 
+##                  female male
+##   predict female   1524   42
+##   predict male       60 1542</code></pre>
+<p>As the result shows, the model gives a true positive rate of (assume female to be true) 1524 / 1584 = 0.96, which is a very nice result.</p>
+<p>We have also plot the ROC plot of our basic model.</p>
 </div>
-<div id="improved-models" class="section level1">
-<h1>Improved Models</h1>
+<div id="improve-logistic" class="section level4">
+<h4>Improve Logistic</h4>
+<p>Although the tp rate of our basic model is quite satisfying, we can’t prove that our model uses the best variable set. One way to improve our model is to use the variable selection technique we learn in homework.</p>
+<pre class="r"><code>## predict gender using variable selection
+fit.all &lt;- glm(label~., data = voice, family=&quot;binomial&quot;)
+fit.none &lt;- glm(label~1, data = voice, family=&quot;binomial&quot;)
+
+fit.result &lt;- step(fit.none, 
+                   scope = list(lower = fit.none,
+                                upper = fit.all),
+                   direction = &quot;forward&quot;)
+
+all.prob.pred &lt;- predict(fit.result, newdata = voice, type = &quot;response&quot;)
+all.outcome.pred &lt;- ifelse(all.prob.pred &gt; .5, 
+                           &quot;predict male&quot;, 
+                           &quot;predict female&quot;)
+
+all.df.prediction &lt;- data.frame(
+  predict = all.outcome.pred,
+  actual = voice$label
+)
+
+all.table &lt;- table(all.df.prediction$predict, all.df.prediction$actual)</code></pre>
+<pre class="r"><code>fit.result</code></pre>
+<pre><code>## 
+## Call:  glm(formula = label ~ meanfun + IQR + minfun + skew + sfm + sp.ent + 
+##     modindx + kurt, family = &quot;binomial&quot;, data = voice)
+## 
+## Coefficients:
+## (Intercept)      meanfun          IQR       minfun         skew  
+##  -1.157e+01   -1.678e+02    5.854e+01    3.779e+01    8.911e-02  
+##         sfm       sp.ent      modindx         kurt  
+##  -1.025e+01    3.687e+01   -3.393e+00   -6.584e-03  
+## 
+## Degrees of Freedom: 3167 Total (i.e. Null);  3159 Residual
+## Null Deviance:       4392 
+## Residual Deviance: 560.1     AIC: 578.1</code></pre>
+<pre class="r"><code>all.table</code></pre>
+<pre><code>##                 
+##                  female male
+##   predict female   1541   36
+##   predict male       43 1548</code></pre>
+<p>As we can see, using variable selection, the final model is based on 8 variables out of the 20. The tp rate in this model is 97.3%, higher than our basic model.</p>
+<p>roc plot…</p>
 </div>
-<div id="results-and-conclusion" class="section level1">
-<h1>Results and Conclusion</h1>
+</div>
+<div id="supervised-machine-learning" class="section level3">
+<h3>Supervised Machine Learning</h3>
+</div>
+</div>
+<div id="results-and-conclusion" class="section level2">
+<h2>Results and Conclusion</h2>
+</div>
 </div>
 
 

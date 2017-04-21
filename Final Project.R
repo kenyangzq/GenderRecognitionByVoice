@@ -8,7 +8,7 @@ library(caret)
 
 voice <- read.csv("voice.csv")
 summary(voice)
-View(voice)
+# View(voice)
 
 ### Pre-processing data
 # Mode, dfrange and modindex contains several 0's, may need to mark them as
@@ -42,8 +42,8 @@ mf.df.prediction <- data.frame(
 mf.table <- table(mf.df.prediction$predict, mf.df.prediction$actual)
 mf.table
 ### female male
-### predict female   1499  61
-### predict male      85  1523
+### predict female   1524 42
+### predict male      60  1542
 
 #Plot ROC curve for logistic-regression model using meanfun 
 library(plotROC)
