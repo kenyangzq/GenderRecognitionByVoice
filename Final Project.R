@@ -175,7 +175,7 @@ control_var <- caret::trainControl(
   method = "cv",
   number = 10,
   classProbs = TRUE,
-  ## summaryFunction = mnLogLoss
+  summaryFunction = mnLogLoss
 )
 
 library(e1071)

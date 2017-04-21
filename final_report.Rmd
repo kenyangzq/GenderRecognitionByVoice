@@ -13,8 +13,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-
 # Gender Recognition by Voice
 
 Basic environment setup code.
@@ -31,7 +29,29 @@ voice <- read.csv("voice.csv")
 
 ## Introduction 
 
+Determining the gender of a voice is normally a very simple task. Typically, our ears are easily able to recognize the gender of the person speaking within a few words. We wanted to see if this held true for statistical models as well. We set out to explore the relationship between the acoustic properties of a voice and the speaker's gender, and attempted to create a model that could predict the gender of a voice as accurately as the human ear. This project focuses on the general process of approaching a classification problem, through data exploration, model creation, and model improvement.
+
 ## Data Exploration
+
+Before exploring basic trends in the data, the dataset was examined for anomalies, null values, and other characteristics that would skew our analysis. Since this dataset was from Kaggle, it was relatively prepared for processing aside from a few zero-values that were not explained in documentation. The dataset has 20 numerical features with 3,168 entries labelled as male or female. There were equal counts of male and female entries, and nearly every variable had eight degrees of decimal precision.
+
+Since these were domain-specific features rooted in acoustic analysis, no inferences could immediately be made about the relative importance of features and what an entry would realistically sound like given the sound data. However, the data could be visualized to look for differentiating features given the gender labels. In the below figure, density plots are created for each feature and factored by label. Through this visual, it could be seen that mean fundamental frequency `meanfun`, IQR `IQR`, and the first frequency quantile `Q25` depict distinct peaks in densities. This suggests that these three features are primary predictors in the classification problem, and could be focused on for a strong portion of accuracy. In other density plots that display a lot of overlap, it is difficult to distinguish genders based solely on such features. There is more to be explored about the relationship between these features, though we can move onto building basic prediction models.
+
+![](imgs/Density_1.png)
+
+The below scatterplot of meanfun vs. IQR depicts a striking differentiation between the two genders, corresponding with our conclusions from the density plots.
+
+![](imgs/Scatterplot_1.png)
+
+### More on Feature Importance
+
+<text on random forest model>
+
+![](imgs/rf_feature_importance_plot.png)
+
+<text on decision tree plot>
+
+![](imgs/decision_tree_plot.png)
 
 ## Models
 
@@ -74,7 +94,11 @@ As the result shows, the model gives a true positive rate of (assume female to b
 
 We have also plot the ROC plot of our basic model.
 ```{r}
-
+glm_1_roc <- data.frame(D = as.numeric(voice$label)-1, M = mf.prob.pred)
+ggplot(glm_1_roc, aes(d = D, m = M)) + geom_roc() + 
+  labs(title = "Logistic Regression ROC")+
+  theme(plot.title = element_text(size = 18, face = "bold", hjust = 0.5), 
+        text= element_text(size = 14))
 ```
 
 
@@ -111,7 +135,16 @@ all.table
 ```
 As we can see, using variable selection, the final model is based on 8 variables out of the 20. The tp rate in this model is 97.3%, higher than our basic model.
 
-roc plot...
+The ROC plot of this improved model is also shown below. Note that this plot is rather similar to the previous one due to marginal improvements.
+
+```{r}
+all_1_roc <- data.frame(D = as.numeric(voice$label)-1, M = all.prob.pred)
+ggplot(all_1_roc, aes(d = D, m = M)) + geom_roc() +
+  labs(title = "AIC Model ROC")+
+  theme(plot.title = element_text(size=18, face = "bold", hjust = 0.5), 
+        text = element_text(size=14))
+```
+
 
 ### Supervised Machine Learning 
 
@@ -162,12 +195,6 @@ ggplot(test, aes(x=meanfun, y=IQR)) +
 ```
 
 The tp rate in the test set is 169/174 = 97.1%. 
-
-roc plot
-```{r}
-
-
-```
 
 
 ## Results and Conclusion
