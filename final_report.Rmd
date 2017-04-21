@@ -1,0 +1,180 @@
+---
+title: "Gender Prediction by Voice - 2820L Term Project"
+author: "Alex DiCesare, Kenneth Li, and Ken Yang"
+date: "April 22, 2017"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+# Gender Recognition by Voice
+
+Basic environment setup code.
+```{r, results='hide'} 
+library(ggplot2)
+library(dplyr, warn.conflicts = FALSE)
+library(broom)
+library(class)
+library(caret)
+library(plotROC)
+voice <- read.csv("voice.csv")
+## summary(voice)
+```
+
+## Introduction 
+
+## Data Exploration
+
+## Models
+
+### Logistic Regression
+Among all the models we tried on this data set, the first we consider is regression. As stated in Data Exploration section, our label is a binomial variable, linear regression is not a candidate.
+Therefore, we try logistic regression. 
+
+#### Basic Logistic
+Our data set has 20 numerical features. At the first glance with a density plot in previous section, we estimate that mean fundamental frequency (meanfun), IQR and first frequency quantile (Q25) are the most dominant variables. Thus, we build our basic logistic model on these 3 variables.
+
+```{r}
+# Logistic Regression using meanfun, IQR, Q25
+fit.mf <- glm(
+  label~meanfun+IQR+Q25, 
+  data = voice, 
+  family = "binomial"
+)
+# get the prediction and mutate it into binary output
+mf.prob.pred <- predict(
+  fit.mf, 
+  newdata = voice, 
+  type = "response"
+)
+
+mf.outcome.pred <- ifelse(mf.prob.pred > .5, 
+                          "predict male", 
+                          "predict female")
+
+mf.df.prediction <- data.frame(
+  predict = mf.outcome.pred,
+  actual = voice$label
+)
+
+# get the prediction table (updated for meanfun model)
+mf.table <- table(mf.df.prediction$predict, mf.df.prediction$actual)
+mf.table
+```
+
+As the result shows, the model gives a true positive rate of (assume female to be true) 1524 / 1584 = 0.96, which is a very nice result. 
+
+We have also plot the ROC plot of our basic model.
+```{r}
+
+```
+
+
+#### Improve Logistic
+Although the tp rate of our basic model is quite satisfying, we can't prove that our model uses the best variable set. One way to improve our model is to use the variable selection technique we learn in homework. 
+
+```{r, results = "hide"}
+## predict gender using variable selection
+fit.all <- glm(label~., data = voice, family="binomial")
+fit.none <- glm(label~1, data = voice, family="binomial")
+
+# Forward selection
+fit.result <- step(fit.none, 
+                   scope = list(lower = fit.none,
+                                upper = fit.all),
+                   direction = "forward")
+
+all.prob.pred <- predict(fit.result, newdata = voice, type = "response")
+all.outcome.pred <- ifelse(all.prob.pred > .5, 
+                           "predict male", 
+                           "predict female")
+
+all.df.prediction <- data.frame(
+  predict = all.outcome.pred,
+  actual = voice$label
+)
+
+all.table <- table(all.df.prediction$predict, all.df.prediction$actual)
+```
+
+```{r}
+fit.result
+all.table
+```
+As we can see, using variable selection, the final model is based on 8 variables out of the 20. The tp rate in this model is 97.3%, higher than our basic model.
+
+roc plot...
+
+### Supervised Machine Learning 
+
+#### KNN 
+KNN is the model we learn in the lecture. Our first attempt is KNN with mean fundamental frequency and IQR. We choose K to be 5 in our model.
+
+```{r}
+# first break the data set into train set and test set
+voice.sub <- voice %>% select(meanfun, IQR, label)
+
+row <- nrow(voice)
+set.seed(1234)
+voice.train <- voice.sub %>% sample_n(row*9/10)
+voice.test <- setdiff(voice.sub, voice.train)
+  
+# then get data without label and separate label out
+train.data <- voice.train %>% select(-label)
+test.data <- voice.test %>% select(-label)
+train.label <- voice.train$label
+test.label <- voice.test$label
+
+# perform KNN with K = 5
+knn.pred.5 <- knn(train.data, test.data, train.label, 5)
+table(knn.pred.5, test.label)
+
+# Plot KNN:
+test <- test.data %>% mutate(
+  Label = knn.pred.5
+)
+
+grid <- expand.grid(
+  meanfun = seq(0, 0.3, length.out = 100),
+  IQR = seq(0, 0.3, length.out = 100)
+)
+
+set.seed(1234)
+grid5.pred <- knn(train.data, grid, train.label, 5)
+
+ggplot(test, aes(x=meanfun, y=IQR)) +
+  geom_point(aes(pch=Label, color = Label), size = 1) +
+  geom_point(data = grid, 
+             mapping = aes(x=meanfun,y=IQR,color=grid5.pred), 
+             alpha = .1) + 
+  labs(title = "KNN Model plotted over Meanfun and IQR")+
+  theme(plot.title = element_text(size = 18, hjust = 0.5, face = "bold"), 
+        text = element_text(size = 14))
+
+```
+
+The tp rate in the test set is 169/174 = 97.1%. 
+
+roc plot
+```{r}
+
+
+```
+
+
+## Results and Conclusion
+
+
+
+
+
+
+
