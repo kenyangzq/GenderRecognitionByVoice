@@ -115,7 +115,59 @@ roc plot...
 
 ### Supervised Machine Learning 
 
+#### KNN 
+KNN is the model we learn in the lecture. Our first attempt is KNN with mean fundamental frequency and IQR. We choose K to be 5 in our model.
 
+```{r}
+# first break the data set into train set and test set
+voice.sub <- voice %>% select(meanfun, IQR, label)
+
+row <- nrow(voice)
+set.seed(1234)
+voice.train <- voice.sub %>% sample_n(row*9/10)
+voice.test <- setdiff(voice.sub, voice.train)
+  
+# then get data without label and separate label out
+train.data <- voice.train %>% select(-label)
+test.data <- voice.test %>% select(-label)
+train.label <- voice.train$label
+test.label <- voice.test$label
+
+# perform KNN with K = 5
+knn.pred.5 <- knn(train.data, test.data, train.label, 5)
+table(knn.pred.5, test.label)
+
+# Plot KNN:
+test <- test.data %>% mutate(
+  Label = knn.pred.5
+)
+
+grid <- expand.grid(
+  meanfun = seq(0, 0.3, length.out = 100),
+  IQR = seq(0, 0.3, length.out = 100)
+)
+
+set.seed(1234)
+grid5.pred <- knn(train.data, grid, train.label, 5)
+
+ggplot(test, aes(x=meanfun, y=IQR)) +
+  geom_point(aes(pch=Label, color = Label), size = 1) +
+  geom_point(data = grid, 
+             mapping = aes(x=meanfun,y=IQR,color=grid5.pred), 
+             alpha = .1) + 
+  labs(title = "KNN Model plotted over Meanfun and IQR")+
+  theme(plot.title = element_text(size = 18, hjust = 0.5, face = "bold"), 
+        text = element_text(size = 14))
+
+```
+
+The tp rate in the test set is 169/174 = 97.1%. 
+
+roc plot
+```{r}
+
+
+```
 
 
 ## Results and Conclusion
