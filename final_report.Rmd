@@ -56,11 +56,10 @@ By training a random forest model with the data, feature importance could also b
 ## Models
 
 ### Logistic Regression
-Among all the models we tried on this data set, the first we consider is regression. As stated in Data Exploration section, our label is a binomial variable, linear regression is not a candidate.
-Therefore, we try logistic regression. 
+We first considered a logistic regression model as a basic prediction technique for the data. As stated in the Data Exploration section, our label is a binomial variable (male, female). Therefore, we try logistic regression. 
 
 #### Basic Logistic
-Our data set has 20 numerical features. At the first glance with a density plot in previous section, we estimate that mean fundamental frequency (meanfun), IQR and first frequency quantile (Q25) are the most dominant variables. Thus, we build our basic logistic model on these 3 variables.
+Our data set has 20 numerical features. At the first glance with a density plot in previous section, we estimate that mean fundamental frequency `meanfun`, IQR `IQR` and first frequency quantile `Q25` are the most dominant variables. Thus, we build a basic logistic model on these 3 variables.
 
 ```{r}
 # Logistic Regression using meanfun, IQR, Q25
@@ -103,7 +102,7 @@ ggplot(glm_1_roc, aes(d = D, m = M)) + geom_roc() +
 
 
 #### Improving Logistic Regression
-Although the tp rate of our basic model is quite satisfying, we can't prove that our model uses the best variable set. One way to improve our model is to use the variable selection technique we learn in homework. 
+Although the true-positive rate of our basic model is quite satisfying, we can't prove that our model uses the best variable set. One way to improve our model is to use a stepwise variable selection technique.
 
 ```{r, results = "hide"}
 ## predict gender using variable selection
@@ -133,7 +132,7 @@ all.table <- table(all.df.prediction$predict, all.df.prediction$actual)
 fit.result
 all.table
 ```
-As we can see, using variable selection, the final model is based on 8 variables out of the 20. The tp rate in this model is 97.3%, higher than our basic model.
+As we can see, the final model using variable seleciton is based on 8 variables out of the 20. The true-positive rate in this model is 97.3%, higher than our basic model.
 
 The ROC plot of this improved model is also shown below. Note that this plot is rather similar to the previous one due to marginal improvements.
 
@@ -148,8 +147,8 @@ ggplot(all_1_roc, aes(d = D, m = M)) + geom_roc() +
 
 ### Supervised Machine Learning 
 
-#### KNN 
-KNN is the model we learn in the lecture. Our first attempt is KNN with mean fundamental frequency and IQR. We choose K to be 5 in our model.
+#### K-Nearest-Neighbors 
+K-Nearest-Neighbors (KNN) is a popular prediction model that could be used for classification and regression problems. We develop a simple KNN model using `meanfun` and `IQR`. We choose K to be 5 in our model.
 
 ```{r}
 # first break the data set into train set and test set
@@ -194,11 +193,22 @@ ggplot(test, aes(x=meanfun, y=IQR)) +
 
 ```
 
-The tp rate in the test set is 169/174 = 97.1%. 
+The true-positive rate in the test set is 169/174 = 97.1%. 
 
-#### Cross-Validation 
-A cross-validation control variable was used while training further models. This allows for our models to be cross-validated 10 times using a logloss summary function. 
+#### Train/Test Set Partitioning and Cross-Validation 
+Before training further models, the dataset was split into a training set that was 80% as large and test set with the remaining data. GIven that the labels are evenly split, a similarly even split of labels should be expected. Additionally, a cross-validation control variable was used. This allows for our models to be cross-validated 10 times using a logloss summary function. 
 ```{r}
+# Create data partition
+set.seed(4321)
+trainindex <- createDataPartition(
+  y = voice$label,
+  p = .8,
+  list = FALSE
+)
+
+cv_train <- voice[trainindex, ]
+cv_test <- voice[-trainindex, ]
+
 # create control variable
 control_var <- caret::trainControl(
   method = "cv",
@@ -228,8 +238,13 @@ The best accuracy we get is 96%. We found a way to visualize the tree as follows
 fancyRpartPlot(dtree_fit$finalModel)
 ```
 
+## Conclusion
 
-## Results and Conclusion
+Through developing basic prediction models for this dataset, we have seen some interesting results. Data exploration suggested that the most distinguishing features of the voice data were mean fundamental frequency `meanfun` and the interquantile range `IQR`. In general, males tend to have a lower mean frequency of voice and their voice's IQR is higher. Some other helpful features include the standard deviation of voice and first quantile of voice. 
+
+Out of the models we developed, the outstanding ones were logistic regression, KNN, decision tree and random forest. We used variable selection in logistic regression to get a more thorough model with accuracy of 97%. For the supervised machine learning models, the decision tree model had the fastest learning rate with an accuracy of 95% to 96%. During this project, two KNN models were developed. One was trained only using `meanfun` and `IQR` and another was trained on the entire dataset. Both models have comparable performance by yielding an accuracy of about 96%, and so we chose to report the simpler KNN model. The performance of these models suggest that only a few features were helpful in the classification problem, and some could be omitted with marginal loss in accuracy. This outcome was also illustrated by our data exploration, where feature importance visualizations suggested a similar notion. 
+
+In the process of building and training our models, we used knowledge and techniques we learned in the lab. Moreover, we sought after helpful online resources to generate visually appealing and representative plots for different models. In the future, we hope to improve upon basic models through fine tuning parameters after more thorough testing. Additionally, discovering more effective visualizations of our models' performances and the data itself will be beneficial practices. 
 
 
 

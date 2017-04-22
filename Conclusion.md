@@ -1,4 +1,4 @@
-## Result and Conclusion
+## Conclusion
 
 Overall, we examine different models on our data and we get some nice result. The most distinguishing features of voice data are mean fundamental frequency and the interquantile range (IQR). In general, males tend to have a lower mean frequency of voice and their voice's IQR is higher. Some other helpful feature includes the standard deviation of voice and first quantile of voice. 
 
