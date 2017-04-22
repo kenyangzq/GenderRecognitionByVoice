@@ -5,6 +5,7 @@ library(dplyr)
 library(broom)
 library(class)
 library(caret)
+library(plotROC)
 
 voice <- read.csv("voice.csv")
 summary(voice)
@@ -17,11 +18,6 @@ summary(voice)
 # source of the data claim that the data has been pre-processed
 voice.sort_by_dfrange <- voice %>% arrange(dfrange,mode)
 View(voice.sort_by_dfrange)
-
-# Label is gender, a binomial variable, can't use linear regression on it.
-
-
-
 
 ### Logistic Regression using meanfun, IQR, Q25
 fit.mf <- glm(label~meanfun+IQR+Q25, data = voice, family = "binomial")
@@ -45,8 +41,7 @@ mf.table
 ### predict female   1524 42
 ### predict male      60  1542
 
-#Plot ROC curve for logistic-regression model using meanfun 
-library(plotROC)
+#Plot ROC curve for logistic-regression model using meanfun
 glm_1_roc <- data.frame(D = as.numeric(voice$label)-1, M = mf.prob.pred)
 
 png('imgs/logReg_ROC_1.png',width = 1080, height = 720, res = 125)
@@ -102,9 +97,7 @@ dev.off()
 #ROC curve is better than logregression model
 
 ### KNN
-# I did an experiment with meanfreq and sd. It turns out not very 
-# well. I will try to work with different combination of parameters
-# Editted with meanfun and IQR features.
+# first use meanfreq and IQR features only
 
 # first break the data set into train set and test set
 
@@ -142,7 +135,7 @@ set.seed(1234)
 grid5.pred <- knn(train.data, grid, train.label, 5)
 
 summary(test)
-png('imgs/KNN_2.png',width = 1080, height = 720, res = 125)
+#png('imgs/KNN_2.png',width = 1080, height = 720, res = 125)
 ggplot(test, aes(x=meanfun, y=IQR)) +
   geom_point(aes(pch=Label, color = Label), size = 1) +
   geom_point(data = grid, 
@@ -153,7 +146,7 @@ ggplot(test, aes(x=meanfun, y=IQR)) +
         text = element_text(size = 14))
 
 #export graph 
-dev.off()
+#dev.off()
 
 
 ## Supervised Machine Learning with Cross Validation
@@ -195,30 +188,6 @@ knn_10_cv <- caret::train(
 knn_10_cv_results <- predict(knn_10_cv, newdata = cv_test, type  = "prob")
 class_prob <- knn_10_cv_results$male
 
-# # create control variable
-# control_var <- caret::trainControl(
-#   method = "cv",
-#   number = 10,
-#   classProbs = TRUE
-# )
-# 
-# library(e1071)
-# 
-# #10-fold CV for KNN
-# knn_10_cv <- caret::train(
-#   label ~ .,
-#   data = cv_train,
-#   method = "knn",
-#   trControl = control_var,
-#   metric = "Accuracy",
-#   tuneLength = 10,
-#   prob = TRUE
-# )
-# #5 is the optimal k-param
-# 
-# knn_10_cv_results <- predict(knn_10_cv, newdata = cv_test, type  = "prob")
-# class_prob <- knn_10_cv_results$male
-
 #Use only when knn model doesn't output probabilities
 confusionMatrix(knn_10_cv_results, cv_test$label)
 
@@ -233,7 +202,7 @@ ggplot(knn_roc, aes(d = D, m = M)) + geom_roc() +
   theme(plot.title = element_text(size=18, face = "bold", hjust = 0.5), text = element_text(size=14))
 # dev.off()
 
-# let's try 1-layer neural network
+# 1-layer neural network
 set.seed(1)
 nnet_fit <- caret::train(
   label ~ .,
