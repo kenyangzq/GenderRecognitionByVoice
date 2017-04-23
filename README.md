@@ -8,25 +8,17 @@ This database was created to identify a voice as male or female, based upon acou
 
 Data obtain from Kaggle, [GenderRecognitionByVoice](https://www.kaggle.com/primaryobjects/voicegender).
 
-## Details
----
-title: "Gender Prediction by Voice - 2820L Term Project"
-author: "Alex DiCesare, Kenneth Li, and Ken Yang"
-date: "April 22, 2017"
-output: 
-  html_document:
-    toc: true
-    toc_float: true
 
----
+## Report 
+
+Determining the gender of a voice is normally a very simple task. Typically, our ears are easily able to recognize the gender of the person speaking within a few words. We wanted to see if this held true for statistical models as well. We set out to explore the relationship between the acoustic properties of a voice and the speaker's gender, and attempted to create a model that could predict the gender of a voice as accurately as the human ear. This project focuses on the general process of approaching a classification problem, through data exploration, model creation, and model improvement.
+
+Basic environment setup code.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Gender Recognition by Voice
-
-Basic environment setup code.
 ```{r, results='hide'} 
 library(ggplot2)
 library(dplyr, warn.conflicts = FALSE)
@@ -41,10 +33,6 @@ library(rpart.plot)
 voice <- read.csv("voice.csv")
 ## summary(voice)
 ```
-
-## Introduction 
-
-Determining the gender of a voice is normally a very simple task. Typically, our ears are easily able to recognize the gender of the person speaking within a few words. We wanted to see if this held true for statistical models as well. We set out to explore the relationship between the acoustic properties of a voice and the speaker's gender, and attempted to create a model that could predict the gender of a voice as accurately as the human ear. This project focuses on the general process of approaching a classification problem, through data exploration, model creation, and model improvement.
 
 ## Data Exploration
 
@@ -63,6 +51,7 @@ The below scatterplot of meanfun vs. IQR depicts a striking differentiation betw
 By training a random forest model with the data, feature importance could also be visualized by how often features were selected for the model. The below graph displays the frequencies of selection across variables scaled over the total number of trees in the model. This further suggests that `meanfreq`, `IQR`, and `Q25` are important features.
 
 ![](imgs/rf_feature_importance_plot.png)
+
 
 ## Models
 
