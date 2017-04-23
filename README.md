@@ -1,6 +1,6 @@
 # Gender Recognition by Voice Data
 
-## Introduction
+## Abstract
 This repository is the final project for Math 2820 Lab (Intro to Probability and Statistic). Cooperate with 
 Kenny Li and Alex DiCesare.
 
@@ -9,7 +9,7 @@ This database was created to identify a voice as male or female, based upon acou
 Data obtain from Kaggle, [GenderRecognitionByVoice](https://www.kaggle.com/primaryobjects/voicegender).
 
 
-## Report 
+## Introduction
 
 Determining the gender of a voice is normally a very simple task. Typically, our ears are easily able to recognize the gender of the person speaking within a few words. We wanted to see if this held true for statistical models as well. We set out to explore the relationship between the acoustic properties of a voice and the speaker's gender, and attempted to create a model that could predict the gender of a voice as accurately as the human ear. This project focuses on the general process of approaching a classification problem, through data exploration, model creation, and model improvement.
 
